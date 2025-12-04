@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "103874164166",
+    "project_id": "saloonvala-b2f13",
+    "storage_bucket": "saloonvala-b2f13.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103874164166:android:bd0435695cbaa992746ec7",
+        "android_client_info": {
+          "package_name": "com.saloonvala.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg3sFmGnF0sAf3OpivZhcG6vSUPys1kQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

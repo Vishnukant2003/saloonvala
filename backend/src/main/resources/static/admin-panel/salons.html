@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Salons</title>
+
+    <!-- CORRECTED CSS PATH -->
+    <link rel="stylesheet" href="/admin-panel/assets/css/dashboard.css">
+
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge">SV</div>
+            <span>SaloonVala Admin</span>
+        </div>
+        <div class="sidebar-nav-title">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin-panel/dashboard.html" class="sidebar-link"><span class="icon">📊</span>Dashboard</a></li>
+            <li><a href="/admin-panel/users.html" class="sidebar-link"><span class="icon">👥</span>Users</a></li>
+            <li><a href="/admin-panel/salons.html" class="sidebar-link active"><span class="icon">💈</span>Salons</a></li>
+            <li><a href="/admin-panel/appointments.html" class="sidebar-link"><span class="icon">📅</span>Appointments</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; <span id="footerYear"></span> SaloonVala
+        </div>
+    </aside>
+
+    <div class="main-shell">
+        <header class="topbar">
+            <h1>Salons</h1>
+            <div class="top-actions">
+                <span id="adminName"></span>
+                <button id="logoutBtn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <h2>Salon Approval List</h2>
+
+            <table class="table table-striped mt-3" id="salonTable">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Salon Name</th>
+                    <th>City</th>
+                    <th>Status</th>
+                    <th>Owner</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </main>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("adminToken");
+    const adminId = localStorage.getItem("adminId");
+    const API_BASE =
+        window.location.origin.includes("63342")
+            ? "http://localhost:8080"
+            : window.location.origin;
+
+    if (!token) {
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    // Fetch salons
+    async function loadSalons() {
+        const res = await fetch(`${API_BASE}/api/admin/salons`, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const api = await res.json();
+        const data = api.data || api;
+        const tbody = document.querySelector("#salonTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(s => {
+            const row = `
+                <tr onclick="openSalonDetail(${s.id})" style="cursor: pointer;">
+                    <td>${s.id}</td>
+                    <td>${s.salonName}</td>
+                    <td>${s.city}</td>
+                    <td><span class="badge bg-primary">${s.approvalStatus}</span></td>
+                    <td>${s.ownerName || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm me-1" onclick="event.stopPropagation(); approveSalon(${s.id})">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); rejectSalon(${s.id})">Reject</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function openSalonDetail(id) {
+        window.location.href = `/admin-panel/salon-detail.html?salonId=${id}`;
+    }
+
+    async function approveSalon(id) {
+        const adminId = localStorage.getItem("adminId");
+
+        await fetch(`${API_BASE}/api/admin/salon/approve/${id}?adminId=${adminId}`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        loadSalons();
+    }
+
+    async function rejectSalon(id) {
+        const adminId = localStorage.getItem("adminId");
+        const reason = prompt("Enter rejection reason (optional):", "");
+        if (reason === null) {
+            return; // user cancelled
+        }
+
+        const url = `${API_BASE}/api/admin/salon/reject/${id}?adminId=${adminId}` +
+            (reason.trim() ? `&reason=${encodeURIComponent(reason.trim())}` : "");
+
+        await fetch(url, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+
+        loadSalons();
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    document.getElementById("footerYear").innerText = new Date().getFullYear();
+
+    loadSalons();
+</script>
+
+</body>
+</html>

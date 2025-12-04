@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Appointments</title>
+
+    <link rel="stylesheet" href="/admin-panel/assets/css/dashboard.css">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge">SV</div>
+            <span>SaloonVala Admin</span>
+        </div>
+        <div class="sidebar-nav-title">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin-panel/dashboard.html" class="sidebar-link"><span class="icon">📊</span>Dashboard</a></li>
+            <li><a href="/admin-panel/users.html" class="sidebar-link"><span class="icon">👥</span>Users</a></li>
+            <li><a href="/admin-panel/salons.html" class="sidebar-link"><span class="icon">💈</span>Salons</a></li>
+            <li><a href="/admin-panel/appointments.html" class="sidebar-link active"><span class="icon">📅</span>Appointments</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; <span id="footerYear"></span> SaloonVala
+        </div>
+    </aside>
+
+    <div class="main-shell">
+        <header class="topbar">
+            <h1>Appointments</h1>
+            <div class="top-actions">
+                <span id="adminName"></span>
+                <button id="logoutBtn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>All Appointments</h2>
+                <div class="d-flex align-items-center gap-2">
+                    <label class="me-2">Status:</label>
+                    <select id="statusFilter" class="form-select form-select-sm" style="width: 180px;">
+                        <option value="">All</option>
+                        <option value="REQUESTED">Requested</option>
+                        <option value="ACCEPTED">Accepted</option>
+                        <option value="IN_SERVICE">In Service</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="REJECTED">Rejected</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" onclick="loadBookings()">Refresh</button>
+                </div>
+            </div>
+
+            <table class="table table-striped mt-3" id="bookingTable">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Salon</th>
+                    <th>Service</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Scheduled At</th>
+                    <th>Queue</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </main>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("adminToken");
+    const adminId = localStorage.getItem("adminId");
+    const API_BASE =
+        window.location.origin.includes("63342")
+            ? "http://localhost:8080"
+            : window.location.origin;
+
+    if (!token) {
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    async function loadBookings() {
+        const status = document.getElementById("statusFilter").value;
+        const url = status
+            ? `${API_BASE}/api/admin/bookings?status=${encodeURIComponent(status)}`
+            : `${API_BASE}/api/admin/bookings`;
+
+        const res = await fetch(url, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const api = await res.json();
+        const data = api.data || api;
+
+        const tbody = document.querySelector("#bookingTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(b => {
+            const badgeClass = (() => {
+                switch (b.status) {
+                    case "REQUESTED": return "bg-secondary";
+                    case "ACCEPTED": return "bg-primary";
+                    case "IN_SERVICE": return "bg-info";
+                    case "COMPLETED": return "bg-success";
+                    case "REJECTED": return "bg-danger";
+                    case "CANCELLED": return "bg-warning";
+                    default: return "bg-light text-dark";
+                }
+            })();
+
+            const canCancel = b.status === "REQUESTED" || b.status === "ACCEPTED" || b.status === "IN_SERVICE";
+
+            const row = `
+                <tr>
+                    <td>${b.id}</td>
+                    <td>${b.salonName || "-"}</td>
+                    <td>${b.serviceName || "-"}</td>
+                    <td>${b.userName ? b.userName + " (" + (b.userMobile || "") + ")" : "-"}</td>
+                    <td><span class="badge ${badgeClass}">${b.status}</span></td>
+                    <td>${b.scheduledAt || ""}</td>
+                    <td>${b.queueNumber ?? ""}</td>
+                    <td>
+                        ${canCancel ? `<button class="btn btn-sm btn-danger" onclick="cancelBooking(${b.id})">Force Cancel</button>` : ""}
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    async function cancelBooking(id) {
+        if (!confirm("Force cancel this booking?")) return;
+        const reason = prompt("Enter reason for cancellation (optional):", "");
+        const url = `${API_BASE}/api/admin/booking/cancel/${id}?adminId=${adminId}`
+            + (reason && reason.trim() ? `&reason=${encodeURIComponent(reason.trim())}` : "");
+
+        await fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        loadBookings();
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    document.getElementById("footerYear").innerText = new Date().getFullYear();
+
+    loadBookings();
+</script>
+
+</body>
+</html>
+
+

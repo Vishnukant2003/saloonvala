@@ -1,0 +1,4 @@
+Not searching for unused variables given on the command line.
+-- Configuring done
+-- Generating done
+-- Build files have been written to: D:/saloonvala-main/flutter-app/android/app/.cxx/debug/2424344d/arm64-v8a

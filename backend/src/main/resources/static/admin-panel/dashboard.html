@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard</title>
+
+    <!-- Correct CSS path -->
+    <link rel="stylesheet" href="/admin-panel/assets/css/dashboard.css">
+
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge">SV</div>
+            <span>SaloonVala Admin</span>
+        </div>
+        <div class="sidebar-nav-title">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin-panel/dashboard.html" class="sidebar-link active"><span class="icon">📊</span>Dashboard</a></li>
+            <li><a href="/admin-panel/users.html" class="sidebar-link"><span class="icon">👥</span>Users</a></li>
+            <li><a href="/admin-panel/salons.html" class="sidebar-link"><span class="icon">💈</span>Salons</a></li>
+            <li><a href="/admin-panel/appointments.html" class="sidebar-link"><span class="icon">📅</span>Appointments</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; <span id="footerYear"></span> SaloonVala
+        </div>
+    </aside>
+
+    <div class="main-shell">
+        <header class="topbar">
+            <h1>Salon Admin Dashboard</h1>
+            <div class="top-actions">
+                <span id="adminName"></span>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <section class="cards">
+                <div class="card">
+                    <div class="card-title">Total Users</div>
+                    <div class="card-value" id="totalUsers">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Total Customers</div>
+                    <div class="card-value" id="totalCustomers">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Total Owners</div>
+                    <div class="card-value" id="totalOwners">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Total Salons</div>
+                    <div class="card-value" id="totalSalons">—</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Pending Approvals</div>
+                    <div class="card-value" id="pendingApprovals">—</div>
+                </div>
+            </section>
+
+            <section class="charts">
+                <div class="chart-card">
+                    <h3>Overview</h3>
+                    <canvas id="overviewChart" height="120"></canvas>
+                </div>
+
+                <div class="recent-card">
+                    <h3>Latest Salon Requests</h3>
+                    <ul id="latestSalons" class="list"></ul>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <small>Salon Management — Admin Panel</small>
+            </footer>
+        </main>
+    </div>
+</div>
+
+<!-- Correct JS path -->
+<script src="/admin-panel/assets/js/dashboard.js"></script>
+<script>
+    document.getElementById("footerYear").innerText = new Date().getFullYear();
+</script>
+
+</body>
+</html>

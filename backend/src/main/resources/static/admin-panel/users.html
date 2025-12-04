@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Users</title>
+
+    <!-- FIXED CSS PATH -->
+    <link rel="stylesheet" href="/admin-panel/assets/css/dashboard.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge">SV</div>
+            <span>SaloonVala Admin</span>
+        </div>
+        <div class="sidebar-nav-title">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin-panel/dashboard.html" class="sidebar-link"><span class="icon">📊</span>Dashboard</a></li>
+            <li><a href="/admin-panel/users.html" class="sidebar-link active"><span class="icon">👥</span>Users</a></li>
+            <li><a href="/admin-panel/salons.html" class="sidebar-link"><span class="icon">💈</span>Salons</a></li>
+            <li><a href="/admin-panel/appointments.html" class="sidebar-link"><span class="icon">📅</span>Appointments</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; <span id="footerYear"></span> SaloonVala
+        </div>
+    </aside>
+
+    <div class="main-shell">
+        <header class="topbar">
+            <h1>Users</h1>
+            <div class="top-actions">
+                <span id="adminName"></span>
+                <button id="logoutBtn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <h2>All Registered Users</h2>
+
+            <table class="table table-bordered table-striped mt-3" id="userTable">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </main>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("adminToken");
+    const adminId = localStorage.getItem("adminId");
+
+    const API_BASE =
+        window.location.origin.includes("63342")
+            ? "http://localhost:8080"
+            : window.location.origin;
+
+    if (!token) {
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    async function loadUsers() {
+        const res = await fetch(`${API_BASE}/api/user/all`, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+
+        const tbody = document.querySelector("#userTable tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(u => {
+            const isActive = !!u.isActive;
+            const statusBadge = isActive
+                ? '<span class="badge bg-success">Active</span>'
+                : '<span class="badge bg-danger">Blocked</span>';
+
+            const actionButtons = `
+                <button class="btn btn-sm ${isActive ? 'btn-warning' : 'btn-success'} me-1"
+                        onclick="${isActive ? 'blockUser' : 'unblockUser'}(${u.id})">
+                    ${isActive ? 'Block' : 'Unblock'}
+                </button>
+                <button class="btn btn-sm btn-danger"
+                        onclick="deleteUser(${u.id})">
+                    Delete
+                </button>
+            `;
+
+            const row = `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${u.name}</td>
+                    <td>${u.mobile}</td>
+                    <td>${u.email}</td>
+                    <td>${u.role}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actionButtons}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    async function blockUser(id) {
+        if (!confirm("Block this user?")) return;
+
+        await fetch(`${API_BASE}/api/admin/user/block/${id}?adminId=${adminId}`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        loadUsers();
+    }
+
+    async function unblockUser(id) {
+        if (!confirm("Unblock this user?")) return;
+
+        await fetch(`${API_BASE}/api/admin/user/unblock/${id}?adminId=${adminId}`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        loadUsers();
+    }
+
+    async function deleteUser(id) {
+        if (!confirm("Delete this user? This cannot be undone.")) return;
+
+        await fetch(`${API_BASE}/api/admin/user/${id}?adminId=${adminId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+        loadUsers();
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    document.getElementById("footerYear").innerText = new Date().getFullYear();
+
+    // Load users
+    loadUsers();
+</script>
+
+</body>
+</html>

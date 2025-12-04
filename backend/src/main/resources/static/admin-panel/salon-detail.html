@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Salon Overview</title>
+
+    <link rel="stylesheet" href="/admin-panel/assets/css/dashboard.css">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-badge">SV</div>
+            <span>SaloonVala Admin</span>
+        </div>
+        <div class="sidebar-nav-title">Navigation</div>
+        <ul class="sidebar-nav">
+            <li><a href="/admin-panel/dashboard.html" class="sidebar-link"><span class="icon">📊</span>Dashboard</a></li>
+            <li><a href="/admin-panel/users.html" class="sidebar-link"><span class="icon">👥</span>Users</a></li>
+            <li><a href="/admin-panel/salons.html" class="sidebar-link active"><span class="icon">💈</span>Salons</a></li>
+            <li><a href="/admin-panel/appointments.html" class="sidebar-link"><span class="icon">📅</span>Appointments</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; <span id="footerYear"></span> SaloonVala
+        </div>
+    </aside>
+
+    <div class="main-shell">
+        <header class="topbar">
+            <h1 id="salonTitle">Salon Overview</h1>
+            <div class="top-actions">
+                <span id="adminName"></span>
+                <button id="logoutBtn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main class="container">
+            <div class="mb-3">
+                <a href="/admin-panel/salons.html" class="btn btn-link">&larr; Back to Salons</a>
+            </div>
+
+            <section class="cards mb-4">
+                <div class="card">
+                    <div class="card-title">Total Revenue</div>
+                    <div class="card-value" id="totalRevenue">₹0</div>
+                    <div class="card-growth" id="thisMonthRevenue">This month: ₹0</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Today</div>
+                    <div class="card-value" id="todayRevenue">₹0</div>
+                    <div class="card-growth" id="todayBookings">0 bookings</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">This Week</div>
+                    <div class="card-value" id="weekRevenue">₹0</div>
+                    <div class="card-growth" id="weekBookings">0 bookings</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Completed Bookings</div>
+                    <div class="card-value" id="completedBookings">0</div>
+                    <div class="card-growth" id="totalBookings">Total: 0</div>
+                </div>
+            </section>
+
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="chart-card">
+                        <h3>Salon Details</h3>
+                        <div id="salonDetails"></div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="chart-card">
+                        <h3>Booking Breakdown</h3>
+                        <ul class="list" id="bookingBreakdown"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-card">
+                <h3>Staff Performance</h3>
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Total Bookings</th>
+                        <th>Total Revenue</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="staffTableBody"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("adminToken");
+    const adminId = localStorage.getItem("adminId");
+    const API_BASE =
+        window.location.origin.includes("63342")
+            ? "http://localhost:8080"
+            : window.location.origin;
+
+    if (!token) {
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    const salonId = getQueryParam("salonId");
+
+    async function loadSalonOverview() {
+        if (!salonId) return;
+
+        const res = await fetch(`${API_BASE}/api/admin/salon/overview/${salonId}`, {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const api = await res.json();
+        const data = api.data || api;
+
+        // Header
+        document.getElementById("salonTitle").innerText = data.salon?.salonName || "Salon Overview";
+
+        // Revenue cards
+        const revenue = data.revenue || {};
+        document.getElementById("totalRevenue").innerText = "₹" + (revenue.total?.toFixed?.(2) || "0.00");
+        document.getElementById("thisMonthRevenue").innerText = "This month: ₹" + (revenue.thisMonth?.toFixed?.(2) || "0.00");
+        document.getElementById("todayRevenue").innerText = "₹" + (revenue.today?.toFixed?.(2) || "0.00");
+        document.getElementById("weekRevenue").innerText = "₹" + (revenue.thisWeek?.toFixed?.(2) || "0.00");
+
+        // Booking stats
+        const bookings = data.bookings || {};
+        document.getElementById("todayBookings").innerText = (bookings.today || 0) + " bookings";
+        document.getElementById("weekBookings").innerText = (bookings.thisWeek || 0) + " bookings";
+        document.getElementById("completedBookings").innerText = bookings.completed || 0;
+        document.getElementById("totalBookings").innerText = "Total: " + (bookings.total || 0);
+
+        // Salon details
+        const s = data.salon || {};
+        const salonDetails = `
+            <div><strong>Owner:</strong> ${s.ownerName || "-"}</div>
+            <div><strong>City:</strong> ${s.city || "-"}</div>
+            <div><strong>Address:</strong> ${s.address || "-"}</div>
+            <div><strong>Category:</strong> ${s.category || "-"}</div>
+            <div><strong>Timings:</strong> ${s.openTime || "--"} - ${s.closeTime || "--"}</div>
+            <div><strong>Status:</strong> ${s.approvalStatus || "-"}${s.isLive ? " • Live" : ""}</div>
+        `;
+        document.getElementById("salonDetails").innerHTML = salonDetails;
+
+        // Booking breakdown list
+        const breakdown = document.getElementById("bookingBreakdown");
+        breakdown.innerHTML = "";
+        const items = [
+            ["Requested", bookings.requested],
+            ["Accepted", bookings.accepted],
+            ["In Service", bookings.inService],
+            ["Rejected", bookings.rejected],
+            ["Cancelled", bookings.cancelled]
+        ];
+        items.forEach(([label, value]) => {
+            const li = document.createElement("li");
+            li.innerHTML = `<span>${label}</span><span class="badge bg-secondary">${value || 0}</span>`;
+            breakdown.appendChild(li);
+        });
+
+        // Staff table
+        const staffBody = document.getElementById("staffTableBody");
+        staffBody.innerHTML = "";
+        (data.staff || []).forEach(st => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${st.name || "-"}</td>
+                <td>${st.role || "-"}</td>
+                <td>${st.totalBookings || 0}</td>
+                <td>₹${(st.totalRevenue || 0).toFixed(2)}</td>
+                <td>${st.isAvailable ? '<span class="badge bg-success">Online</span>' : '<span class="badge bg-secondary">Offline</span>'}</td>
+            `;
+            staffBody.appendChild(tr);
+        });
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/admin-panel/login.html";
+    }
+
+    document.getElementById("footerYear").innerText = new Date().getFullYear();
+
+    loadSalonOverview();
+</script>
+
+</body>
+</html>
+
+
