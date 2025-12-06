@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
+import '../../services/api_service.dart';
 import 'salon_detail_screen.dart';
 
 // Pure Dart Code - Admin Salons Screen (Converted from HTML/CSS/JS)
@@ -11,8 +12,11 @@ class AdminSalonsScreen extends StatefulWidget {
 }
 
 class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
+  final ApiService _apiService = ApiService();
   List<Map<String, dynamic>> _salons = [];
+  List<Map<String, dynamic>> _filteredSalons = [];
   bool _isLoading = true;
+  String _selectedFilter = 'ALL';
 
   @override
   void initState() {
@@ -21,11 +25,31 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
   }
 
   Future<void> _loadSalons() async {
-    // TODO: Load salons from API
-    setState(() {
-      _isLoading = false;
-      _salons = []; // Will be loaded from API
-    });
+    setState(() => _isLoading = true);
+    try {
+      final salons = await _apiService.getAdminSalons();
+      setState(() {
+        _salons = List<Map<String, dynamic>>.from(salons);
+        _applyFilter();
+      });
+    } catch (e) {
+      debugPrint('Error loading salons: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading salons: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _applyFilter() {
+    if (_selectedFilter == 'ALL') {
+      _filteredSalons = _salons;
+    } else {
+      _filteredSalons = _salons
+          .where((s) => s['approvalStatus'] == _selectedFilter)
+          .toList();
+    }
   }
 
   @override
@@ -38,12 +62,33 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'All Salons',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'All Salons',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _loadSalons,
+                      tooltip: 'Refresh',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Filter chips
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _buildFilterChip('ALL', 'All'),
+                    _buildFilterChip('PENDING', 'Pending'),
+                    _buildFilterChip('APPROVED', 'Approved'),
+                    _buildFilterChip('REJECTED', 'Rejected'),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Expanded(
@@ -58,7 +103,7 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
                           DataColumn(label: Text('Status')),
                           DataColumn(label: Text('Actions')),
                         ],
-                        rows: _salons.isEmpty
+                        rows: _filteredSalons.isEmpty
                             ? [
                                 const DataRow(
                                   cells: [
@@ -71,12 +116,12 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
                                   ],
                                 ),
                               ]
-                            : _salons.map((salon) {
+                            : _filteredSalons.map((salon) {
                                 final status = salon['approvalStatus'] ?? 'PENDING';
                                 return DataRow(
-                                  onSelectChanged: (selected) {
+                                  onSelectChanged: (selected) async {
                                     if (selected == true) {
-                                      Navigator.push(
+                                      final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => AdminSalonDetailScreen(
@@ -84,6 +129,9 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
                                           ),
                                         ),
                                       );
+                                      if (result == true) {
+                                        _loadSalons(); // Refresh list after action
+                                      }
                                     }
                                   },
                                   cells: [
@@ -165,6 +213,22 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
     );
   }
 
+  Widget _buildFilterChip(String value, String label) {
+    final isSelected = _selectedFilter == value;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedFilter = value;
+          _applyFilter();
+        });
+      },
+      selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+      checkmarkColor: AppTheme.primaryColor,
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
       case 'APPROVED':
@@ -173,23 +237,82 @@ class _AdminSalonsScreenState extends State<AdminSalonsScreen> {
         return Colors.red;
       case 'PENDING':
         return Colors.orange;
+      case 'NEEDS_CORRECTION':
+        return Colors.amber;
       default:
         return Colors.grey;
     }
   }
 
-  void _approveSalon(int salonId) {
-    // TODO: Approve salon via API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Approving salon $salonId...')),
-    );
+  Future<void> _approveSalon(int salonId) async {
+    try {
+      await _apiService.approveSalon(salonId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Salon approved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadSalons(); // Refresh the list
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error approving salon: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  void _rejectSalon(int salonId) {
-    // TODO: Reject salon via API
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Rejecting salon $salonId...')),
+  Future<void> _rejectSalon(int salonId) async {
+    final reasonController = TextEditingController();
+    
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject Salon'),
+        content: TextField(
+          controller: reasonController,
+          decoration: const InputDecoration(
+            labelText: 'Rejection Reason',
+            hintText: 'Enter reason for rejection...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, reasonController.text),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
     );
+
+    if (result != null) {
+      try {
+        await _apiService.rejectSalon(salonId, result);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Salon rejected'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        _loadSalons(); // Refresh the list
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error rejecting salon: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 

@@ -3,6 +3,8 @@ package com.salonvala.salonmanagement.dto.salon;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class SalonResponse {
@@ -69,4 +71,9 @@ public class SalonResponse {
     private String shopFrontImageUrl;
     private String shopInsideImage1Url;
     private String shopInsideImage2Url;
+    
+    // ==================== TIMESTAMPS ====================
+    private LocalDateTime createdAt;
+    private LocalDateTime reviewedAt;
+    private Long reviewedBy;
 }

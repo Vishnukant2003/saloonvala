@@ -70,6 +70,11 @@ public class DtoMapper {
         r.setShopInsideImage1Url(s.getShopInsideImage1Url());
         r.setShopInsideImage2Url(s.getShopInsideImage2Url());
         
+        // Timestamps
+        r.setCreatedAt(s.getCreatedAt());
+        r.setReviewedAt(s.getReviewedAt());
+        r.setReviewedBy(s.getReviewedBy());
+        
         return r;
     }
 

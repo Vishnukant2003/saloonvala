@@ -4,6 +4,9 @@ import com.salonvala.salonmanagement.entity.User;
 import com.salonvala.salonmanagement.enums.SalonApprovalStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -142,4 +145,15 @@ public class Salon {
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String shopInsideImage2Url;
+
+    // Timestamp when salon was registered
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    // Timestamp when salon was reviewed by admin
+    private LocalDateTime reviewedAt;
+
+    // Admin who reviewed the salon
+    private Long reviewedBy;
 }

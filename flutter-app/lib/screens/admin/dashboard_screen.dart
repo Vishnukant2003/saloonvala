@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
+import '../../services/api_service.dart';
 import 'users_screen.dart';
 import 'salons_screen.dart';
 import 'appointments_screen.dart';
@@ -13,6 +14,7 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  final ApiService _apiService = ApiService();
   int _selectedIndex = 0;
   bool _isLoading = false;
 
@@ -23,6 +25,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _totalSalons = 0;
   int _pendingApprovals = 0;
 
+  // Recent pending salons
+  List<Map<String, dynamic>> _recentPendingSalons = [];
+
   @override
   void initState() {
     super.initState();
@@ -31,16 +36,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Future<void> _loadDashboardStats() async {
     setState(() => _isLoading = true);
-    // TODO: Load stats from API
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {
-      _isLoading = false;
-      _totalUsers = 100; // Placeholder
-      _totalCustomers = 80;
-      _totalOwners = 20;
-      _totalSalons = 15;
-      _pendingApprovals = 3;
-    });
+    try {
+      // Fetch dashboard stats from API
+      final stats = await _apiService.getAdminDashboardStats();
+      
+      // Fetch pending salons for the sidebar
+      final salons = await _apiService.getAdminSalons();
+      final pendingSalons = salons
+          .where((s) => s['approvalStatus'] == 'PENDING')
+          .take(5)
+          .toList();
+      
+      setState(() {
+        _totalUsers = stats['totalUsers'] ?? 0;
+        _totalCustomers = stats['totalCustomers'] ?? 0;
+        _totalOwners = stats['totalOwners'] ?? 0;
+        _totalSalons = stats['totalSalons'] ?? 0;
+        _pendingApprovals = stats['pendingApprovals'] ?? 0;
+        _recentPendingSalons = List<Map<String, dynamic>>.from(pendingSalons);
+      });
+    } catch (e) {
+      debugPrint('Error loading dashboard stats: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading dashboard: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -329,7 +351,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text('No recent requests'),
+                                _recentPendingSalons.isEmpty
+                                    ? const Text('No pending requests')
+                                    : Column(
+                                        children: _recentPendingSalons.map((salon) {
+                                          return ListTile(
+                                            contentPadding: EdgeInsets.zero,
+                                            leading: CircleAvatar(
+                                              backgroundColor: Colors.orange.shade100,
+                                              child: const Icon(Icons.store, color: Colors.orange),
+                                            ),
+                                            title: Text(salon['salonName'] ?? 'Unknown'),
+                                            subtitle: Text(salon['city'] ?? ''),
+                                            trailing: const Icon(Icons.pending, color: Colors.orange),
+                                            onTap: () {
+                                              setState(() => _selectedIndex = 2); // Go to Salons tab
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
                               ],
                             ),
                           ),

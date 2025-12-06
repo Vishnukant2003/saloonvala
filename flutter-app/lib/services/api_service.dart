@@ -666,7 +666,7 @@ class ApiService {
       return ApiResponse.fromJson(response.data, (data) => data as Map<String, dynamic>);
     } catch (e) {
       debugPrint('Error fetching registration status: $e');
-      return ApiResponse(success: false, message: 'Failed to fetch status', data: null);
+      return ApiResponse(message: 'Failed to fetch status', data: null);
     }
   }
 
@@ -677,7 +677,7 @@ class ApiService {
       return ApiResponse.fromJson(response.data, (data) => data as Map<String, dynamic>);
     } catch (e) {
       debugPrint('Error fetching rejected fields: $e');
-      return ApiResponse(success: false, message: 'Failed to fetch rejected fields', data: null);
+      return ApiResponse(message: 'Failed to fetch rejected fields', data: null);
     }
   }
 
