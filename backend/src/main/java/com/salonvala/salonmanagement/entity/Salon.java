@@ -29,6 +29,8 @@ public class Salon {
 
     private String contactNumber;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
@@ -66,4 +68,78 @@ public class Salon {
 
     // Service coverage area description
     private String serviceArea;
+    
+    // Landmark for location
+    private String landmark;
+    
+    // Home service availability
+    private Boolean homeServiceAvailable = false;
+    
+    // Working days (e.g., "Mon,Tue,Wed,Thu,Fri,Sat")
+    private String workingDays;
+    
+    // Rejection reason (when rejected by admin)
+    @Column(length = 1000)
+    private String rejectionReason;
+    
+    // ==================== OWNER DETAILS ====================
+    private String ownerName;
+    private String ownerPhone;
+    private String ownerEmail;
+    private String ownerAge;
+    private String ownerGender;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String ownerProfileImageUrl;
+    
+    // ==================== DOCUMENTS ====================
+    // Aadhaar
+    private String aadhaarNumber;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String aadhaarFrontImageUrl;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String aadhaarBackImageUrl;
+    
+    // PAN Card
+    private String panNumber;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String panCardImageUrl;
+    
+    // Shop License
+    private String shopLicenseNumber;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String shopLicenseImageUrl;
+    
+    // GST
+    private String gstNumber;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String gstCertificateImageUrl;
+    
+    // ==================== PHOTOS ====================
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String liveSelfieImageUrl;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String shopFrontImageUrl;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String shopInsideImage1Url;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String shopInsideImage2Url;
 }

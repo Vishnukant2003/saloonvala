@@ -153,7 +153,35 @@ public class AdminController {
     }
 
     // -------------------------------------------
-    // 6️⃣ Admin - Bookings
+    // 6️⃣ Get All Users (Admin)
+    // -------------------------------------------
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers() {
+        var users = userRepository.findAll();
+        
+        List<Map<String, Object>> list = users.stream()
+                .map(u -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", u.getId());
+                    m.put("name", u.getName());
+                    m.put("email", u.getEmail());
+                    m.put("mobile", u.getMobile());
+                    m.put("role", u.getRole().name());
+                    m.put("isActive", u.getIsActive());
+                    m.put("gender", u.getGender());
+                    m.put("address", u.getAddress());
+                    m.put("city", u.getCity());
+                    m.put("state", u.getState());
+                    m.put("createdAt", u.getCreatedAt());
+                    return m;
+                })
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(list);
+    }
+
+    // -------------------------------------------
+    // 7️⃣ Admin - Bookings
     // -------------------------------------------
 
     @GetMapping("/bookings")

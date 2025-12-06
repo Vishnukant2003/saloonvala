@@ -40,6 +40,36 @@ public class DtoMapper {
         r.setSpecialities(s.getSpecialities());
         r.setLanguages(s.getLanguages());
         r.setServiceArea(s.getServiceArea());
+        r.setLandmark(s.getLandmark());
+        r.setHomeServiceAvailable(s.getHomeServiceAvailable());
+        r.setWorkingDays(s.getWorkingDays());
+        r.setRejectionReason(s.getRejectionReason());
+        
+        // Owner Details
+        r.setOwnerName(s.getOwnerName());
+        r.setOwnerPhone(s.getOwnerPhone());
+        r.setOwnerEmail(s.getOwnerEmail());
+        r.setOwnerAge(s.getOwnerAge());
+        r.setOwnerGender(s.getOwnerGender());
+        r.setOwnerProfileImageUrl(s.getOwnerProfileImageUrl());
+        
+        // Documents
+        r.setAadhaarNumber(s.getAadhaarNumber());
+        r.setAadhaarFrontImageUrl(s.getAadhaarFrontImageUrl());
+        r.setAadhaarBackImageUrl(s.getAadhaarBackImageUrl());
+        r.setPanNumber(s.getPanNumber());
+        r.setPanCardImageUrl(s.getPanCardImageUrl());
+        r.setShopLicenseNumber(s.getShopLicenseNumber());
+        r.setShopLicenseImageUrl(s.getShopLicenseImageUrl());
+        r.setGstNumber(s.getGstNumber());
+        r.setGstCertificateImageUrl(s.getGstCertificateImageUrl());
+        
+        // Photos
+        r.setLiveSelfieImageUrl(s.getLiveSelfieImageUrl());
+        r.setShopFrontImageUrl(s.getShopFrontImageUrl());
+        r.setShopInsideImage1Url(s.getShopInsideImage1Url());
+        r.setShopInsideImage2Url(s.getShopInsideImage2Url());
+        
         return r;
     }
 

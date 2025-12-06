@@ -26,10 +26,9 @@ public class SalonRequest {
 
     // Geographic location
     private Double latitude;
-
     private Double longitude;
 
-    // Salon category (e.g., "Men's Salon", "Women's Salon", "Unisex", "Makeup", "Facial", "Hair Care")
+    // Salon category
     private String category;
 
     // Additional business details
@@ -38,7 +37,33 @@ public class SalonRequest {
     private Integer numberOfStaff;
     private String specialities;
     private String languages;
-
-    // Service coverage area description
     private String serviceArea;
+    private String landmark;
+    private Boolean homeServiceAvailable;
+    private String workingDays;
+    
+    // ==================== OWNER DETAILS ====================
+    private String ownerName;
+    private String ownerPhone;
+    private String ownerEmail;
+    private String ownerAge;
+    private String ownerGender;
+    private String ownerProfileImageUrl;
+    
+    // ==================== DOCUMENTS ====================
+    private String aadhaarNumber;
+    private String aadhaarFrontImageUrl;
+    private String aadhaarBackImageUrl;
+    private String panNumber;
+    private String panCardImageUrl;
+    private String shopLicenseNumber;
+    private String shopLicenseImageUrl;
+    private String gstNumber;
+    private String gstCertificateImageUrl;
+    
+    // ==================== PHOTOS ====================
+    private String liveSelfieImageUrl;
+    private String shopFrontImageUrl;
+    private String shopInsideImage1Url;
+    private String shopInsideImage2Url;
 }

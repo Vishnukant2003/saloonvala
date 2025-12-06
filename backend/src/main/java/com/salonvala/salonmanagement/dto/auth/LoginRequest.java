@@ -7,4 +7,6 @@ import lombok.Setter;
 @Setter
 public class LoginRequest {
     private String mobile;
+    private String name;
+    private String role;  // USER, OWNER, or ADMIN - used to validate correct login page
 }
